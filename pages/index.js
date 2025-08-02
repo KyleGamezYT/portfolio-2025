@@ -1,97 +1,113 @@
-import { useState } from "react";
+import React from "react";
+import Head from "next/head";
+import config from "../config";
 
-export default function ShareXDashboard() {
-  const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [link, setLink] = useState("");
-  const [error, setError] = useState("");
-
-  function handleFileChange(e) {
-    setFile(e.target.files[0]);
-    setLink("");
-    setError("");
-  }
-
-  async function handleUpload() {
-    if (!file) return;
-
-    setUploading(true);
-    setError("");
-    setLink("");
-
-    const reader = new FileReader();
-    reader.onload = async () => {
-      // Get base64 string without metadata prefix
-      const base64 = reader.result.split(",")[1];
-      try {
-        const res = await fetch("/api/sharex-upload", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Bearer YOUR_SECRET_TOKEN", // replace with your token or env var usage
-          },
-          body: JSON.stringify({
-            name: file.name,
-            image: base64,
-          }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          setError(data.error || "Upload failed");
-          setUploading(false);
-          return;
-        }
-
-        const data = await res.json();
-        setLink(window.location.origin + data.url);
-        setUploading(false);
-      } catch (e) {
-        setError("Upload error");
-        setUploading(false);
-      }
-    };
-    reader.readAsDataURL(file);
-  }
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-black text-white p-8 max-w-lg mx-auto">
-      <h1 className="text-4xl font-bold mb-6 text-green-400">ShareX Dashboard</h1>
-      <p className="mb-4 text-gray-300">
-        Upload an image or video and get a sharable link instantly.
-      </p>
+    <div className="bg-black text-white min-h-screen font-sans">
+      <Head>
+        <title>{config.name} | Portfolio</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
 
-      <input
-        type="file"
-        onChange={handleFileChange}
-        className="mb-4 w-full text-black"
-        accept="image/*,video/*"
-      />
+      <header className="p-6 border-b border-gray-700">
+        <h1 className="text-3xl font-bold">{config.name}</h1>
+        <p className="text-gray-400">{config.bio}</p>
+      </header>
 
-      <button
-        disabled={!file || uploading}
-        onClick={handleUpload}
-        className="bg-green-500 hover:bg-green-600 disabled:bg-gray-600 px-6 py-2 rounded font-semibold mb-4 w-full"
-      >
-        {uploading ? "Uploading..." : "Upload"}
-      </button>
+      <main className="p-6 space-y-16">
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">About Me</h2>
+          <p className="text-gray-300 max-w-2xl">{config.about}</p>
+        </section>
 
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Projects</h2>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="bg-gray-900 p-4 rounded-lg shadow">
+              <h3 className="text-xl font-medium">Project One</h3>
+              <p className="text-gray-400">Short description of the project goes here.</p>
+            </div>
+            <div className="bg-gray-900 p-4 rounded-lg shadow">
+              <h3 className="text-xl font-medium">Project Two</h3>
+              <p className="text-gray-400">Another quick project overview.</p>
+            </div>
+          </div>
+        </section>
 
-      {link && (
-        <div className="bg-green-900 p-4 rounded">
-          <p className="mb-2 break-all">{link}</p>
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(link);
-              alert("Link copied!");
-            }}
-            className="bg-green-400 hover:bg-green-500 text-black px-4 py-1 rounded"
-          >
-            Copy Link
-          </button>
-        </div>
-      )}
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Community Involvement</h2>
+          <p className="text-gray-300">I'm currently staff in the following Roblox communities:</p>
+          <ul className="list-disc list-inside text-gray-400">
+            <li>
+              <a
+                href="https://discord.gg/gvro"
+                className="underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GVRO (Greenville Roleplay Operation)
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://discord.gg/gvreflection"
+                className="underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GVReflection
+              </a>
+            </li>
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Contact</h2>
+          <div className="flex space-x-6 text-white">
+            {config.socials.instagram && (
+              <a
+                href={config.socials.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Instagram
+              </a>
+            )}
+            {config.socials.discord && (
+              <a
+                href={config.socials.discord}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Discord
+              </a>
+            )}
+            {config.socials.roblox && (
+              <a
+                href={config.socials.roblox}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Roblox
+              </a>
+            )}
+            {config.socials.tiktok && (
+              <a
+                href={config.socials.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                TikTok
+              </a>
+            )}
+          </div>
+        </section>
+      </main>
+
+      <footer className="p-4 border-t border-gray-700 text-gray-600 text-sm text-center">
+        &copy; {new Date().getFullYear()} {config.name}. All rights reserved.
+      </footer>
     </div>
   );
 }
