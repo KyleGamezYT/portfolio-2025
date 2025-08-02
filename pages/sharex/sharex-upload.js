@@ -1,5 +1,9 @@
-import fs from "fs";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_KEY
+);
 
 export const config = {
   api: {
@@ -21,17 +25,26 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing name or image" });
   }
 
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  const filePath = path.join(uploadDir, name);
-
   try {
-    fs.writeFileSync(filePath, Buffer.from(image, "base64"));
-    res.status(200).json({ url: `/uploads/${name}` });
+    const buffer = Buffer.from(image, "base64");
+
+    const { data, error } = await supabase.storage
+      .from("sharex")
+      .upload(name, buffer, {
+        contentType: "image/png",
+        upsert: true,
+      });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("sharex").getPublicUrl(name);
+
+    return res.status(200).json({ url: publicUrl });
   } catch (err) {
-    res.status(500).json({ error: "Failed to save file" });
+    return res.status(500).json({ error: "Upload failed" });
   }
 }
